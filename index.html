@@ -3,64 +3,86 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Alex FF Mini - Chat Global</title>
+    <title>Alex FF Mini - Pro</title>
     <script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
+        html, body { height: 100%; overflow: hidden; background: #000; color: white; }
+
         body { 
-            background: #000 url('https://i.ibb.co/9mNXSgKH/FB-IMG-1774065414386.jpg') no-repeat center center fixed;
-            background-size: cover; color: white; padding-bottom: 90px; 
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), 
+                        url('https://i.ibb.co/9mNXSgKH/FB-IMG-1774065414386.jpg') no-repeat center center fixed;
+            background-size: cover;
         }
-        header { padding: 15px; text-align: center; background: rgba(0,0,0,0.7); border-bottom: 2px solid #00f2ff; }
-        .foto-perfil { width: 80px; height: 80px; border-radius: 50%; border: 2px solid #00f2ff; box-shadow: 0 0 10px #00f2ff; }
-        
-        .caja-chat { 
-            background: rgba(0, 0, 0, 0.8); height: 60vh; width: 95%; margin: 10px auto;
-            border-radius: 15px; border: 1px solid #00f2ff; overflow-y: auto; padding: 15px;
-            display: flex; flex-direction: column; gap: 8px;
-        }
-        
-        .msg { background: #1a1a1a; padding: 10px; border-radius: 10px; border-left: 4px solid #00f2ff; max-width: 80%; align-self: flex-start; }
-        .msg.mio { align-self: flex-end; border-left: none; border-right: 4px solid #ff00ff; background: #222; }
 
-        .input-area { display: flex; gap: 5px; padding: 10px; position: fixed; bottom: 70px; width: 100%; background: rgba(0,0,0,0.9); }
-        input { flex: 1; padding: 12px; border-radius: 10px; border: 1px solid #00f2ff; background: #111; color: white; }
-        button { background: #00f2ff; border: none; border-radius: 10px; width: 50px; font-size: 20px; }
+        /* SECCIONES */
+        .seccion { display: none; height: calc(100% - 70px); overflow-y: auto; padding: 20px; }
+        .activa { display: block; }
 
-        .menu { position: fixed; bottom: 0; width: 100%; height: 65px; background: #000; display: flex; justify-content: space-around; align-items: center; border-top: 2px solid #00f2ff; }
-        .menu button { background: none; border: none; color: white; font-size: 11px; }
+        /* INICIO */
+        header { text-align: center; padding-top: 40px; }
+        .foto-perfil { width: 130px; height: 130px; border-radius: 50%; border: 4px solid #00f2ff; box-shadow: 0 0 20px #00f2ff; margin-bottom: 15px; }
+        .btn-red { display: block; width: 90%; margin: 15px auto; padding: 18px; background: rgba(0,242,255,0.2); border: 1px solid #00f2ff; border-radius: 15px; color: white; text-decoration: none; font-weight: bold; text-align: center; backdrop-filter: blur(5px); }
+
+        /* CHAT REAL */
+        #caja-mensajes { height: 75vh; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 100px; }
+        .msg { background: rgba(20,20,20,0.9); padding: 10px; border-radius: 12px; border-left: 3px solid #00f2ff; max-width: 80%; align-self: flex-start; }
+        .msg.mio { align-self: flex-end; border-left: none; border-right: 3px solid #ff00ff; background: rgba(40,40,40,0.9); }
+        
+        .input-chat { position: fixed; bottom: 80px; width: 90%; left: 5%; display: flex; gap: 5px; }
+        input { flex: 1; padding: 12px; border-radius: 20px; border: 1px solid #00f2ff; background: #000; color: white; outline: none; }
+        .btn-send { background: #00f2ff; border: none; width: 45px; height: 45px; border-radius: 50%; font-weight: bold; }
+
+        /* MENU FIJO */
+        nav { position: fixed; bottom: 0; width: 100%; height: 70px; background: rgba(0,0,0,0.95); display: flex; justify-content: space-around; align-items: center; border-top: 2px solid #00f2ff; }
+        nav button { background: none; border: none; color: white; font-size: 11px; }
     </style>
 </head>
 <body>
 
-    <header>
-        <img src="https://i.ibb.co/dJb3RzHk/FB-IMG-1774065361599.jpg" class="foto-perfil">
-        <h1 style="font-size: 16px;">@503_alex_ff_mini</h1>
-    </header>
-
-    <div id="caja" class="caja-chat"></div>
-
-    <div class="input-area">
-        <input type="text" id="ins" placeholder="Escribe aquí, crack...">
-        <button onclick="enviar()">🚀</button>
+    <div id="inicio" class="seccion activa">
+        <header>
+            <img src="https://i.ibb.co/dJb3RzHk/FB-IMG-1774065361599.jpg" class="foto-perfil">
+            <h1 style="text-shadow: 0 0 10px #00f2ff;">@503_alex_ff_mini</h1>
+            <p style="color: #00f2ff; margin-top: 5px;">Crack de Free Fire</p>
+        </header>
+        <div style="margin-top: 30px;">
+            <a href="https://www.tiktok.com/@503_alex_ff_mini" target="_blank" class="btn-red">TIKTOK OFICIAL</a>
+            <a href="#" class="btn-red" style="border-color: #ff00ff;">INSTAGRAM</a>
+        </div>
     </div>
 
-    <nav class="menu">
-        <button onclick="location.reload()">🏠<br>Inicio</button>
-        <button onclick="alert('Próximamente')">🖼️<br>Fotos</button>
-        <button onclick="document.getElementById('ins').focus()">💬<br>Chat</button>
+    <div id="chat" class="seccion">
+        <h2 style="text-align:center; color:#00f2ff; margin-bottom:15px;">CHAT GLOBAL 🔥</h2>
+        <div id="caja-mensajes"></div>
+        <div class="input-chat">
+            <input type="text" id="campo-msg" placeholder="Escribe un mensaje..." onkeypress="if(event.key==='Enter') enviar()">
+            <button class="btn-send" onclick="enviar()">🚀</button>
+        </div>
+    </div>
+
+    <nav>
+        <button onclick="irA('inicio')">🏠<br>Inicio</button>
+        <button onclick="alert('Muro en desarrollo')">🖼️<br>Fotos</button>
+        <button onclick="irA('chat')">💬<br>Chat</button>
     </nav>
 
     <script>
-        // LLAVE PUBLICA PARA QUE FUNCIONE YA
+        // CONEXIÓN ABLY (MUNDO REAL)
         const ably = new Ably.Realtime('8zL7_w.6_6EAg:m1WvN-S-GId_2lI6Hw8A9S8M_pDqKAt7rY6-Y6Y-Y6Y');
         const channel = ably.channels.get('chat-alex-ff');
 
-        let nombre = localStorage.getItem('nombreUsuario') || prompt("Tu nombre de guerra:") || "User";
+        let nombre = localStorage.getItem('nombreUsuario') || prompt("Tu nombre de guerra:");
+        if(!nombre) nombre = "Soldado";
         localStorage.setItem('nombreUsuario', nombre);
 
+        function irA(donde) {
+            document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
+            document.getElementById(donde).classList.add('activa');
+        }
+
         function enviar() {
-            let i = document.getElementById('ins');
+            let i = document.getElementById('campo-msg');
             if(i.value.trim() !== "") {
                 channel.publish('msg', { user: nombre, text: i.value });
                 i.value = "";
@@ -68,15 +90,9 @@
         }
 
         channel.subscribe('msg', (m) => {
-            let data = m.data;
-            let caja = document.getElementById('caja');
-            let esMio = data.user === nombre ? "mio" : "";
-            
-            caja.innerHTML += `
-                <div class="msg ${esMio}">
-                    <b style="color:#00f2ff; font-size:11px;">@${data.user}</b><br>
-                    ${data.text}
-                </div>`;
+            let caja = document.getElementById('caja-mensajes');
+            let esMio = m.data.user === nombre ? "mio" : "";
+            caja.innerHTML += `<div class="msg ${esMio}"><b style="font-size:10px; color:#00f2ff;">@${m.data.user}</b><br>${m.data.text}</div>`;
             caja.scrollTop = caja.scrollHeight;
         });
     </script>
