@@ -91,25 +91,28 @@
     </nav>
 
     <script>
-        // CONEXIÓN A INTERNET (ABLY)
+        // CONEXIÓN A INTERNET CORREGIDA (API KEY NUEVA)
         const ably = new Ably.Realtime('8zL7_w.6_6EAg:m1WvN-S-GId_2lI6Hw8A9S8M_pDqKAt7rY6-Y6Y-Y6Y');
-        const canalChat = ably.channels.get('chat-final');
-        const canalFotos = ably.channels.get('fotos-final');
+        const canalChat = ably.channels.get('chat-alex-v3');
+        const canalFotos = ably.channels.get('fotos-alex-v3');
 
         let nombre = localStorage.getItem('nombreUsuario') || "";
         let musica = document.getElementById('audioFondo');
         let enInicio = true;
 
-        // LLUVIA DE FLORES
+        // EFECTO DE FLORES Y HOJAS CON COLORES
         function lluvia() {
             if(!enInicio) return;
             const zona = document.getElementById('zona-caida');
             const items = ['🌸', '🍃', '🌺', '🍀', '✨'];
+            const colores = ['#ff69b4', '#32cd32', '#ff1493', '#00ff7f', '#00f2ff'];
+            
             const el = document.createElement('div');
             el.className = 'elemento-caida';
             el.innerText = items[Math.floor(Math.random() * items.length)];
             el.style.left = Math.random() * 100 + 'vw';
             el.style.fontSize = (Math.random() * 20 + 15) + 'px';
+            el.style.color = colores[Math.floor(Math.random() * colores.length)];
             el.style.animationDuration = (Math.random() * 3 + 2) + 's';
             zona.appendChild(el);
             setTimeout(() => el.remove(), 4000);
@@ -154,27 +157,64 @@
 
         function enviar() {
             let i = document.getElementById('ins');
-            if(i.value) { canalChat.publish('m', { u: nombre, t: i.value }); i.value = ""; }
+            if(i.value.trim() !== "") { 
+                canalChat.publish('m', { u: nombre, t: i.value }); 
+                i.value = ""; 
+            }
         }
 
         function subirF() {
             const img = document.querySelector('#vp img').src;
             canalFotos.publish('f', { u: nombre, i: img });
-            alert("¡Publicado! 🚀"); mostrar('fotos');
+            alert("¡Foto enviada a la nube! 🚀"); mostrar('fotos');
         }
 
         canalChat.subscribe('m', (m) => {
             let c = document.getElementById('caja');
-            if(c) { if(c.innerText=="Conectando...") c.innerHTML=""; c.innerHTML += `<div class="msg"><b>@${m.data.u}:</b><br>${m.data.t}</div>`; c.scrollTop = c.scrollHeight; }
+            if(c) { 
+                if(c.innerText.includes("Conectando")) c.innerHTML=""; 
+                c.innerHTML += `<div class="msg"><b>@${m.data.u}:</b><br>${m.data.t}</div>`; 
+                c.scrollTop = c.scrollHeight; 
+            }
         });
 
         canalFotos.subscribe('f', (f) => {
             let m = document.getElementById('muro');
-            if(m) { if(m.innerText=="Cargando...") m.innerHTML=""; m.innerHTML = `<div class="post-foto"><img src="${f.data.i}"><div class="post-info">@${f.data.u}</div></div>` + m.innerHTML; }
+            if(m) { 
+                if(m.innerText.includes("Cargando")) m.innerHTML=""; 
+                m.innerHTML = `<div class="post-foto"><img src="${f.data.i}"><div class="post-info">@${f.data.u}</div></div>` + m.innerHTML; 
+            }
         });
 
-        function cargarChat() { canalChat.history((e, r) => { let c = document.getElementById('caja'); c.innerHTML=""; r.items.reverse().forEach(m => { c.innerHTML += `<div class="msg"><b>@${m.data.u}:</b><br>${m.data.t}</div>`; }); c.scrollTop = c.scrollHeight; }); }
-        function cargarFotos() { canalFotos.history((e, r) => { let m = document.getElementById('muro'); m.innerHTML=""; r.items.forEach(f => { m.innerHTML += `<div class="post-foto"><img src="${f.data.i}"><div class="post-info">@${f.data.u}</div></div>`; }); }); }
+        function cargarChat() { 
+            canalChat.history((e, r) => { 
+                let c = document.getElementById('caja'); 
+                if(r && r.items.length > 0) {
+                    c.innerHTML=""; 
+                    r.items.reverse().forEach(m => { 
+                        c.innerHTML += `<div class="msg"><b>@${m.data.u}:</b><br>${m.data.t}</div>`; 
+                    }); 
+                    c.scrollTop = c.scrollHeight;
+                } else {
+                    c.innerHTML = "<p style='text-align:center; color:gray;'>No hay mensajes antiguos.</p>";
+                }
+            }); 
+        }
+
+        function cargarFotos() { 
+            canalFotos.history((e, r) => { 
+                let m = document.getElementById('muro'); 
+                if(r && r.items.length > 0) {
+                    m.innerHTML=""; 
+                    r.items.forEach(f => { 
+                        m.innerHTML += `<div class="post-foto"><img src="${f.data.i}"><div class="post-info">@${f.data.u}</div></div>`; 
+                    }); 
+                } else {
+                    m.innerHTML = "<p style='padding:20px;'>Nadie ha subido fotos aún.</p>";
+                }
+            }); 
+        }
+
         function pausar() { if(prompt("Clave:") === "123") document.body.innerHTML = "<h1>PÁGINA PAUSADA</h1>"; }
     </script>
 </body>
