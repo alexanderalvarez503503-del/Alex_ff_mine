@@ -155,13 +155,24 @@
             }
         }
 
-        function enviar() {
+                function enviar() {
             let i = document.getElementById('ins');
+            let c = document.getElementById('caja'); // Buscamos el cuadro del chat
+            
             if(i.value.trim() !== "") { 
+                // 1. MANDAR POR INTERNET (Para que lo vean otros)
                 canalChat.publish('m', { u: nombre, t: i.value }); 
+
+                // 2. MOSTRAR AL INSTANTE (Para que lo veas TÚ sin esperar)
+                if(c.innerHTML.includes("No hay mensajes") || c.innerHTML.includes("Conectando")) c.innerHTML = "";
+                c.innerHTML += `<div class="msg"><b>@${nombre}:</b><br>${i.value}</div>`;
+                
+                // 3. LIMPIAR Y BAJAR EL CHAT
                 i.value = ""; 
+                c.scrollTop = c.scrollHeight;
             }
         }
+
 
         function subirF() {
             const img = document.querySelector('#vp img').src;
