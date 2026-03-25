@@ -90,15 +90,43 @@
         <button onclick="mostrar('publicar')">➕<br>Publicar</button>
     </nav>
 
-    <script>
-        // CONEXIÓN A INTERNET CORREGIDA (API KEY NUEVA)
-        const ably = new Ably.Realtime('8zL7_w.6_6EAg:m1WvN-S-GId_2lI6Hw8A9S8M_pDqKAt7rY6-Y6Y-Y6Y');
-        const canalChat = ably.channels.get('chat-alex-v3');
-        const canalFotos = ably.channels.get('fotos-alex-v3');
+           // 1. REEMPLAZA TU FUNCIÓN ENVIAR CON ESTA:
+        function enviar() {
+            let i = document.getElementById('ins');
+            let c = document.getElementById('caja');
+            
+            if(i.value.trim() !== "") { 
+                // Mandar a la nube
+                canalChat.publish('m', { u: nombre, t: i.value }); 
 
-        let nombre = localStorage.getItem('nombreUsuario') || "";
-        let musica = document.getElementById('audioFondo');
-        let enInicio = true;
+                // Ponerlo en pantalla sin borrar lo anterior
+                if(c.innerHTML.includes("No hay mensajes") || c.innerHTML.includes("Conectando")) {
+                    c.innerHTML = "";
+                }
+                c.innerHTML += `<div class="msg"><b>@${nombre}:</b><br>${i.value}</div>`;
+                
+                i.value = ""; 
+                c.scrollTop = c.scrollHeight;
+            }
+        }
+
+        // 2. REEMPLAZA EL SUBSCRIBE CON ESTE:
+        canalChat.subscribe('m', (m) => {
+            let c = document.getElementById('caja');
+            if(c) { 
+                // Solo borrar el letrero de "Cargando", NO los mensajes de otros
+                if(c.innerText.includes("Conectando") || c.innerText.includes("Cargando")) {
+                    c.innerHTML = "";
+                }
+                
+                // Si el mensaje es de otra persona, lo agregamos
+                if(m.data.u !== nombre) {
+                    c.innerHTML += `<div class="msg" style="border-left-color: #ff69b4;"><b>@${m.data.u}:</b><br>${m.data.t}</div>`;
+                    c.scrollTop = c.scrollHeight;
+                }
+            }
+        });
+
 
         // EFECTO DE FLORES Y HOJAS CON COLORES
         function lluvia() {
