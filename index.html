@@ -6,7 +6,6 @@
     <title>Alex FF Mini - Red Social</title>
     <script src="https://cdn.ably.com/lib/ably.min-1.js"></script>
     <style>
-        /* ESTILOS BASE (TUYOS SIN CAMBIOS) */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: sans-serif; }
         
         body { 
@@ -20,7 +19,7 @@
             padding-bottom: 80px; 
         }
         
-        header { padding: 30px; text-align: center; }
+        header { padding: 30px; text-align: center; position: relative; z-index: 10; }
         .foto-perfil { 
             width: 120px; height: 120px; border-radius: 50%; 
             border: 3px solid #00f2ff; margin: 0 auto; 
@@ -29,7 +28,7 @@
         }
         
         h1 { margin-top: 15px; font-size: 24px; text-shadow: 0 0 10px #00f2ff, 2px 2px 5px #000; }
-        #contenido { min-height: 300px; padding: 10px; }
+        #contenido { min-height: 300px; padding: 10px; position: relative; z-index: 10; }
 
         .btn-red { 
             display: block; width: 90%; margin: 15px auto; padding: 20px; 
@@ -39,22 +38,35 @@
             backdrop-filter: blur(2px);
         }
 
+        /* EFECTO DE FLORES Y HOJAS */
+        .elemento-caida {
+            position: fixed; top: -50px; z-index: 5;
+            user-select: none; pointer-events: none;
+            animation: caer linear infinite;
+        }
+        @keyframes caer {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
         /* CHAT */
         .caja-chat { background: rgba(10, 10, 10, 0.9); height: 350px; border-radius: 15px; border: 1px solid #1a1a1a; overflow-y: auto; padding: 10px; margin-bottom: 10px; }
-        .msg { background: #161616; padding: 10px; border-radius: 10px; margin-bottom: 10px; border-left: 3px solid #00f2ff; position: relative; }
+        .msg { background: #161616; padding: 10px; border-radius: 10px; margin-bottom: 10px; border-left: 3px solid #00f2ff; }
         
-        /* GALERIA */
-        .grid-fotos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
-        .post-foto { background: #111; border-radius: 10px; overflow: hidden; border: 1px solid #222; margin-bottom: 10px;}
-        .post-foto img { width: 100%; height: 180px; object-fit: cover; display: block; }
-        .post-info { padding: 5px; font-size: 10px; color: #00f2ff; text-align: center; background: #000; }
-
-        /* MENÚ */
+        /* MENU */
         .menu { position: fixed; bottom: 0; width: 100%; height: 70px; background: #0a0a0a; display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #222; z-index: 1000; }
         .menu button { background: none; border: none; color: white; font-size: 12px; }
+
+        /* GALERIA */
+        .grid-fotos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px; }
+        .post-foto { background: #111; border-radius: 10px; overflow: hidden; border: 1px solid #222; }
+        .post-foto img { width: 100%; height: 180px; object-fit: cover; display: block; }
+        .post-info { padding: 5px; font-size: 10px; color: #00f2ff; text-align: center; background: #000; }
     </style>
 </head>
 <body onclick="playMusica()">
+
+    <div id="zona-caida"></div>
 
     <audio id="audioFondo" loop>
         <source src="https://files.catbox.moe/k6ejya.m4a" type="audio/x-m4a">
@@ -79,14 +91,30 @@
     </nav>
 
     <script>
-        // CONEXIÓN GLOBAL (ABLY)
+        // CONEXIÓN A INTERNET (ABLY)
         const ably = new Ably.Realtime('8zL7_w.6_6EAg:m1WvN-S-GId_2lI6Hw8A9S8M_pDqKAt7rY6-Y6Y-Y6Y');
-        const canalChat = ably.channels.get('chat-alex-ff');
-        const canalFotos = ably.channels.get('fotos-alex-ff');
+        const canalChat = ably.channels.get('chat-final');
+        const canalFotos = ably.channels.get('fotos-final');
 
         let nombre = localStorage.getItem('nombreUsuario') || "";
         let musica = document.getElementById('audioFondo');
         let enInicio = true;
+
+        // LLUVIA DE FLORES
+        function lluvia() {
+            if(!enInicio) return;
+            const zona = document.getElementById('zona-caida');
+            const items = ['🌸', '🍃', '🌺', '🍀', '✨'];
+            const el = document.createElement('div');
+            el.className = 'elemento-caida';
+            el.innerText = items[Math.floor(Math.random() * items.length)];
+            el.style.left = Math.random() * 100 + 'vw';
+            el.style.fontSize = (Math.random() * 20 + 15) + 'px';
+            el.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            zona.appendChild(el);
+            setTimeout(() => el.remove(), 4000);
+        }
+        setInterval(lluvia, 300);
 
         function playMusica() { if (enInicio && musica.paused) { musica.play(); } }
 
@@ -94,8 +122,8 @@
             const cont = document.getElementById('contenido');
             const cabecera = document.getElementById('cabecera');
             if(seccion === 'inicio') { location.reload(); return; }
-            
             enInicio = false;
+            document.getElementById('zona-caida').innerHTML = "";
             document.body.style.backgroundImage = "none";
             cabecera.style.display = "none";
             musica.pause();
@@ -103,102 +131,51 @@
             if(seccion === 'chat') {
                 if(!nombre) { nombre = prompt("Tu nombre:"); localStorage.setItem('nombreUsuario', nombre); }
                 cont.innerHTML = `
-                    <h2 style="text-align:center; color:#00f2ff; margin-bottom:10px;">Chat Global</h2>
-                    <div id="caja" class="caja-chat">Cargando mensajes...</div>
-                    <div style="display:flex; gap:5px;"><input type="text" id="ins" placeholder="Escribe..." style="flex:1; padding:10px; border-radius:10px; border:1px solid #00f2ff; background:#111; color:white;"><button onclick="enviar()" style="background:#00f2ff; border:none; border-radius:10px; width:50px;">🚀</button></div>
+                    <h2 style="text-align:center; color:#00f2ff; margin-bottom:10px;">Chat Global 🌍</h2>
+                    <div id="caja" class="caja-chat">Conectando...</div>
+                    <div style="display:flex; gap:5px;"><input type="text" id="ins" placeholder="Escribe..." style="flex:1; padding:12px; border-radius:10px; background:#111; color:white; border:1px solid #00f2ff;"><button onclick="enviar()" style="background:#00f2ff; border:none; border-radius:10px; width:60px;">🚀</button></div>
                 `;
-                // Cargar historial al abrir
-                cargarHistorialChat();
+                cargarChat();
             }
-
             if(seccion === 'fotos') {
-                cont.innerHTML = `<h2 style="text-align:center; color:#00f2ff;">Galería Real</h2><div id="muro" class="grid-fotos">Cargando galería...</div>`;
-                cargarHistorialFotos();
+                cont.innerHTML = `<h2 style="text-align:center; color:#00f2ff;">Muro Global</h2><div id="muro" class="grid-fotos">Cargando...</div>`;
+                cargarFotos();
             }
-
             if(seccion === 'publicar') {
                 if(!nombre) { nombre = prompt("Tu nombre:"); localStorage.setItem('nombreUsuario', nombre); }
-                cont.innerHTML = `
-                    <h2 style="text-align:center; color:#00f2ff; margin-bottom:20px;">Subir Foto Normal</h2>
-                    <div style="text-align:center; background:#111; padding:30px; border-radius:20px; border:1px dashed #00f2ff;">
-                        <input type="file" id="archivoFoto" accept="image/*" style="display:none;">
-                        <button onclick="document.getElementById('archivoFoto').click()" class="btn-red" style="width:100%; background:#222;">📁 ABRIR GALERÍA</button>
-                        <div id="vistaPrevia" style="margin-top:15px;"></div>
-                        <button id="btnSubir" onclick="procesarFoto()" class="btn-red" style="display:none; width:100%;">✅ PUBLICAR AHORA</button>
-                    </div>
-                `;
-                
-                document.getElementById('archivoFoto').addEventListener('change', function(e) {
-                    const reader = new FileReader();
-                    reader.onload = function(){
-                        document.getElementById('vistaPrevia').innerHTML = `<img src="${reader.result}" style="width:100%; border-radius:10px;">`;
-                        document.getElementById('btnSubir').style.display = "block";
-                    };
-                    reader.readAsDataURL(e.target.files[0]);
+                cont.innerHTML = `<h2 style="text-align:center; color:#00f2ff;">Subir Foto</h2><div style="text-align:center; background:#111; padding:20px; border-radius:20px; border:1px dashed #00f2ff;"><input type="file" id="archivoFoto" accept="image/*" style="display:none;"><button onclick="document.getElementById('archivoFoto').click()" class="btn-red">📁 ELEGIR FOTO</button><div id="vp"></div><button id="bs" onclick="subirF()" class="btn-red" style="display:none;">✅ PUBLICAR</button></div>`;
+                document.getElementById('archivoFoto').addEventListener('change', function(e){
+                    const r = new FileReader();
+                    r.onload = function(){ document.getElementById('vp').innerHTML = `<img src="${r.result}" style="width:100%; margin-top:10px; border-radius:10px;">`; document.getElementById('bs').style.display="block"; };
+                    r.readAsDataURL(e.target.files[0]);
                 });
             }
         }
 
-        // --- FUNCIONES DEL CHAT REAL ---
         function enviar() {
             let i = document.getElementById('ins');
-            if(i.value) {
-                canalChat.publish('msg', { u: nombre, t: i.value });
-                i.value = "";
-            }
+            if(i.value) { canalChat.publish('m', { u: nombre, t: i.value }); i.value = ""; }
         }
 
-        canalChat.subscribe('msg', (m) => {
+        function subirF() {
+            const img = document.querySelector('#vp img').src;
+            canalFotos.publish('f', { u: nombre, i: img });
+            alert("¡Publicado! 🚀"); mostrar('fotos');
+        }
+
+        canalChat.subscribe('m', (m) => {
             let c = document.getElementById('caja');
-            if(c) {
-                if(c.innerText.includes("Cargando")) c.innerHTML = "";
-                c.innerHTML += `<div class="msg"><b>@${m.data.u}:</b><br>${m.data.t}</div>`;
-                c.scrollTop = c.scrollHeight;
-            }
+            if(c) { if(c.innerText=="Conectando...") c.innerHTML=""; c.innerHTML += `<div class="msg"><b>@${m.data.u}:</b><br>${m.data.t}</div>`; c.scrollTop = c.scrollHeight; }
         });
 
-        function cargarHistorialChat() {
-            canalChat.history((err, res) => {
-                let c = document.getElementById('caja');
-                if(res) {
-                    c.innerHTML = "";
-                    res.items.reverse().forEach(m => {
-                        c.innerHTML += `<div class="msg"><b>@${m.data.u}:</b><br>${m.data.t}</div>`;
-                    });
-                    c.scrollTop = c.scrollHeight;
-                }
-            });
-        }
-
-        // --- FUNCIONES DE GALERÍA REAL ---
-        function procesarFoto() {
-            const imgData = document.querySelector('#vistaPrevia img').src;
-            canalFotos.publish('foto', { u: nombre, img: imgData });
-            alert("¡Foto publicada para todos! ✅");
-            mostrar('fotos');
-        }
-
-        canalFotos.subscribe('foto', (f) => {
-            let muro = document.getElementById('muro');
-            if(muro) {
-                if(muro.innerText.includes("Cargando")) muro.innerHTML = "";
-                muro.innerHTML = `<div class="post-foto"><img src="${f.data.img}"><div class="post-info">@${f.data.u}</div></div>` + muro.innerHTML;
-            }
+        canalFotos.subscribe('f', (f) => {
+            let m = document.getElementById('muro');
+            if(m) { if(m.innerText=="Cargando...") m.innerHTML=""; m.innerHTML = `<div class="post-foto"><img src="${f.data.i}"><div class="post-info">@${f.data.u}</div></div>` + m.innerHTML; }
         });
 
-        function cargarHistorialFotos() {
-            canalFotos.history((err, res) => {
-                let m = document.getElementById('muro');
-                if(res) {
-                    m.innerHTML = "";
-                    res.items.forEach(f => {
-                        m.innerHTML += `<div class="post-foto"><img src="${f.data.img}"><div class="post-info">@${f.data.u}</div></div>`;
-                    });
-                }
-            });
-        }
-
-        function pausar() { if(prompt("Clave:") === "123") document.body.innerHTML = "<h1>PAUSADA</h1>"; }
+        function cargarChat() { canalChat.history((e, r) => { let c = document.getElementById('caja'); c.innerHTML=""; r.items.reverse().forEach(m => { c.innerHTML += `<div class="msg"><b>@${m.data.u}:</b><br>${m.data.t}</div>`; }); c.scrollTop = c.scrollHeight; }); }
+        function cargarFotos() { canalFotos.history((e, r) => { let m = document.getElementById('muro'); m.innerHTML=""; r.items.forEach(f => { m.innerHTML += `<div class="post-foto"><img src="${f.data.i}"><div class="post-info">@${f.data.u}</div></div>`; }); }); }
+        function pausar() { if(prompt("Clave:") === "123") document.body.innerHTML = "<h1>PÁGINA PAUSADA</h1>"; }
     </script>
 </body>
 </html>
